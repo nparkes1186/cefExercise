@@ -3,6 +3,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
+using OpenQA.Selenium.Support.UI;
 
 [TestClass]
 public class TestExercise
@@ -27,8 +28,10 @@ public class TestExercise
         driver.FindElement(By.CssSelector("tr:nth-child(4) > .o-day:nth-child(5) > div")).Click();
         //Expand the Combobox
         driver.FindElement(By.CssSelector(".o-slbtn:nth-child(1) > .o-caret")).Click();
-        //Select Artichoke
-        driver.FindElement(By.CssSelector("div#ContentPlaceHolder1_AllMealsCombo-dropmenu  ul > li:nth-of-type(13)")).Click();
+        //Select Artichoke - Wait added because the click was happening before the list had loaded
+        WebDriverWait ArtichokeWait = new WebDriverWait(driver, TimeSpan.FromSeconds(2));
+        IWebElement combobox = ArtichokeWait.Until(driver => driver.FindElement(By.XPath("//div[@id='ContentPlaceHolder1_AllMealsCombo-dropmenu']//ul[@class='o-mnits']/li[.='Artichoke']")));
+        combobox.Click();
         //Create a web element for the CheckboxList
         IWebElement CheckboxList = driver.FindElement(By.CssSelector("#maincont > div:nth-child(3) > div:nth-child(5) > div:nth-child(2) > div.awe-ajaxcheckboxlist-field.awe-field > div > ul"));
         //Create a list of all <li> elements within the CheckboxList
@@ -49,8 +52,9 @@ public class TestExercise
         driver.FindElement(By.XPath("//li[text() = '100']")).Click();
         //Assert the 100 results per page is selected
         Assert.AreEqual(driver.FindElement(By.CssSelector("#ContentPlaceHolder1_Grid1PageSize-awed > div.o-cptn")).Text , "page size: 100");
-        //Wait for 500 milliseconds to so the page can catch up
-        Thread.Sleep(500);
+        //Wait for the 1-100 to appear in the page number element so we can confirm the page numbers have reloaded correctly
+        WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+        IWebElement element = wait.Until(driver => driver.FindElement(By.CssSelector("#ContentPlaceHolder1_Grid1 > div.awe-footer > div.o-gpginf")));
         //Create a web element for the page numbers
         IWebElement PageNumbers = driver.FindElement(By.XPath("//*[@id=\"ContentPlaceHolder1_Grid1\"]/div[4]/div[2]"));
         //Create a list of page numbers
@@ -59,6 +63,8 @@ public class TestExercise
         IWebElement LastPage = pages.Last();
         //Click the last page number
         LastPage.Click();
+        //Close the browser when complete
+        driver.Quit();
 
     }
 }
